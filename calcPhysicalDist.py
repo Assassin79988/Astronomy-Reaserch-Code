@@ -3,6 +3,39 @@ import math
 from cosmocalc import cosmocalc
 import numpy as np
 import matplotlib.pyplot as plt
+import random, time, os
+from astropy.stats import bootstrap
+
+"""
+Name: bootstrap(x,N,statfunc = None)
+Description: Resamples a data set x N times using the bootstrap method. If user
+              specify then this rountine can also compute a statistic for each resmapled set.
+Parameter: x - original data set
+            N - number of resamples
+            statfunc - function that computes a statistic (if not specified the rountine will not compute a statistic
+                       and just return the resamples a data sets)
+Return: The resamples data sets if statfunc is not specified otherwise return the resamples a data sets   
+def bootstrap(x,N,statfunc = None):
+    # seeds the random function
+    random.seed(time.gmtime())
+    bootarr = [] # arr to store each resmaple set 
+    # resmaples the data set, x , N times
+    for i in range(N):
+        temp = []
+        # picks creates a new sample (same size as x) by randomly picking data from set x 
+        for j in range(len(x)):
+            rand = random.randint(0, len(x)-1)
+            temp.append(x[rand])
+        bootarr.append(temp) # append the current resample to bootarr
+    # checks if user wants compute a statistic with the resmample data 
+    if(statfunc != None):
+        stat = [] # arr to store the statistic for each resmaple set 
+        for i in range(N):
+            stat.append(statfunc(bootarr[i]))
+        return stat 
+    else:
+        return bootarr
+"""
 
 """
 Name: 
@@ -108,6 +141,30 @@ def calcPhysicalDist(RA1, Dec1, RA2, Dec2, z, projDistMethod = 'gc', units= 'r',
     return physDist / 1000
 
 
+def findJPEG(directory = "./", option = 's'):
+
+    # Checks if directory is stored as a list
+    if type(directory) != type([]):
+        directory = [directory]
+
+    # init the array FITS file paths
+    filePaths = []
+    
+    # Finds all sub directories 
+    if option == 'r':
+        parnetDir = copy.deepcopy(directory)
+
+        for pDir in parnetDir:
+            directory.extend(fastScanDir(pDir))
+
+    # Finds all FITS files in the specified directories
+    for path in directory:
+        for file in os.listdir(path):
+            if file.endswith(".jpeg"):
+                filePaths.append(os.path.join(path, file))
+
+    return filePaths
+
 if __name__ == '__main__':
 
     fileDir = "../HeCS_omnibus_dn4000.fits"
@@ -132,17 +189,94 @@ if __name__ == '__main__':
 
 
 
+    _Trend = findJPEG("./Rcl_Visual_Trend")
+    Trend = []
+    for string in _Trend:
+        temp = string.replace("./Rcl_Visual_Trend/", "")
+        Trend.append(temp.replace(".jpeg", ""))
 
+    _noTrend = findJPEG("./Rcl_Not_Visual_Trend'/")
+    noTrend = []
+    for string in _noTrend:
+        temp = string.replace("./Rcl_Not_Visual_Trend'/", "")
+        noTrend.append(temp.replace(".jpeg", ""))
+
+    
+    print(len(Trend))
+    print(len(noTrend))
+    print(len(fits.clusters))
+
+    
+    #Dn4000 Med Plots
+
+    for cluster in fits.clusters:
+        Dn4000 = []
+        Dnerr = []
+        Rcl = []
+        for data in physDict[cluster]:
+            if(np.float64(data[5]) > 0 and np.float64(np.float64(data[6])) < 1):
+                Dn4000.append(np.float64(data[5]))
+                Dnerr.append(np.float64(data[6]))
+                Rcl.append(np.float64(data[3]))
+
+        Rcl = np.array(Rcl, dtype= np.float64)
+        Dn4000 = np.array(Dn4000, dtype= np.float64)
+        Dnerr = np.array(Dnerr, dtype = np.float64)
+
+        binSize = 200 * 0.001# Mpc
+        RclMax = np.max(Rcl)
+        binNum = int(math.ceil(RclMax/ binSize))
+        
+        indexBins = [np.where(np.logical_and(Rcl > i * binSize,  Rcl < (i+1) * binSize))  for i in range(binNum)]
+
+        Dn4000Med = []
+        DnerrMed = []
+        RclMean = []
+        for i in range(len(indexBins)):
+            if (Dn4000[indexBins[i]].size != 0):
+                Dn4000Med.append(np.median(Dn4000[indexBins[i]]))
+                if (Dn4000[indexBins[i]].size > 1):
+                    err = np.std(bootstrap(Dn4000[indexBins[i]], 500, bootfunc = np.median))
+                    DnerrMed.append(err)
+                else:
+                    DnerrMed.append(Dnerr[indexBins[i]][0])
+                RclMean.append(np.mean(Rcl[indexBins[i]]))
+        #print(Rcl[indexBins[-1]])
+        #print(RclMean)
+        plt.scatter(RclMean, Dn4000Med, s = 2)
+        try:
+            plt.errorbar(RclMean, Dn4000Med, yerr = DnerrMed, linestyle = 'None')
+        except:
+            print(DnerrMed)
+            break
+        #plt.scatter(Rcl, Dn4000, s = 2, c = 'r')
+        #plt.show()
+        plt.xlabel("Rcl (Mpc)")
+        plt.ylabel("Dn4000")
+        plt.title("Dn4000 Vs Rcl for {clust}".format(clust = cluster))
+        plt.xlim(0,2)
+        plt.savefig("Rcl/" + cluster + ".jpeg")
+        plt.cla()
+    #plt.show()
+    
+    """
+    plt.errorbar(Rcl, Dn4000, yerr = Dnerr, linestyle = 'None')
+    plt.xlabel("Rcl (Mpc)")
+    plt.ylabel("Dn4000")
+    plt.title("Dn4000 vs Rcl for {clust}".format(clust = cluster))
+    plt.savefig("Rcl/" + cluster + ".jpeg")
+    plt.cla()
+    """
 
     """
-    Dn4000 vs Rcl Plot Code
+    #    Dn4000 vs Rcl Plot Code
     
     for cluster in fits.clusters:
         Dn4000 = []
         Dnerr = []
         Rcl = []
         for data in physDict[cluster]:
-            if(np.float64(data[5]) > 0):
+            if(np.float64(data[5]) > 0 and np.float64(data[6]) < 1):
                 Dn4000.append(np.float64(data[5]))
                 Dnerr.append(np.float64(data[6]))
                 Rcl.append(np.float64(data[3]))
@@ -153,6 +287,7 @@ if __name__ == '__main__':
         plt.title("Dn4000 vs Rcl for {clust}".format(clust = cluster))
         plt.savefig("Rcl/" + cluster + ".jpeg")
         plt.cla()
+        #plt.show()
     """
 
     """
