@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random, time, os
 from astropy.stats import bootstrap
-from scipy.stats import spearmanr, pearsonr, kendalltau
 import pickle
 
 """
