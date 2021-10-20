@@ -14,5 +14,5 @@ This repository contains a series of scripts I will be using. Below is an ungoin
 <b>findTrend.py</b> <br>
 <ul> This script looks for a correlation between Dn4000 and phsyical distance (Rcl). This sript also create a catalogue based on these results.</ul>
 
-<b>clusterProperties</b> <br>
+<b>clusterProperties.py</b> <br>
 <ul> This script crate a series of plots to analyze the results from the pervious scripts </ul>
