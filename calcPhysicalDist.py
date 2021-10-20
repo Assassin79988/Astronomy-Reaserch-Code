@@ -143,6 +143,18 @@ def calcPhysicalDist(RA1, Dec1, RA2, Dec2, z, projDistMethod = 'gc', units= 'r',
     return physDist / 1000
 
 
+"""
+Name: findJPEG(directory = "./", option = 's')
+
+Description: This method parses the folders and returns the name of each
+             JPEG file.
+Parameters: directory - the parnet directory to search.
+            option - Recursively serch a folder or not.
+                s - only look for jpeg in current folders
+                r - look for jpeg in current folder and all sub folders
+
+Return: List of cluster where I visually saw a trend.
+"""
 def findJPEG(directory = "./", option = 's'):
 
     # Checks if directory is stored as a list
@@ -168,11 +180,15 @@ def findJPEG(directory = "./", option = 's'):
     return filePaths
 
 """
-Name:
+Name: saveObject(obj, name)
 
-Description:
+Description: This method takes in any object as an input and
+             save the object as a pickel file. This method assumes
+             a ./obj folder currently exist.
 
 Parameters:
+    obj - object to be saved.
+    name - name of the folder
 
 Return: None.
 """
@@ -181,11 +197,12 @@ def saveObject(obj, name):
         pickle.dump(obj, file, pickle.HIGHEST_PROTOCOL)
 
 """
-Name:
+Name: loadObject(name)
 
-Description:
+Description: This method load a object from a pickel file.
 
 Parameters:
+    name - name of the file to be loaded.
 
 Return: Object store in the pickle file
 """
@@ -193,9 +210,19 @@ def loadObject(name):
     with open('obj/' + name + '.pkl', 'rb') as file:
         return pickle.load(file)
 
+"""
+Name: generateCatalogue(fileName):
 
-def getPhysicalDict():
-    fileDir = "./HeCS_omnibus_dn4000.fits"
+Description: This method generate a catalogue of each cluster of interest
+             with there physical distance data.
+
+Parameters:
+    fileDir - name and directory of the file where the .fits file is located.
+
+Return:
+    A dict containing each cluster name and there physical distance.
+"""
+def generateCatalogue(fileDir):
     data = fits.fetchFITS(fileDir, 's')
 
     clusterDict = fits.getClusterDict(data)
@@ -219,7 +246,7 @@ def getPhysicalDict():
 
 
 if __name__ == '__main__':
-    physDict = getPhysicalDict()
+    physDict = generateCatalogue("./HeCS_omnibus_dn4000.fits")
     saveObject(physDict, "HeCS-omnibus_PhysicalDistanceData")
     print("Dict Complied and Saved!")
     #physDict = loadObject("HeCS-omnibus_PhysicalDistanceData")
