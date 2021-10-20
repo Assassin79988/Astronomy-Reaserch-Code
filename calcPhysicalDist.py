@@ -221,7 +221,7 @@ Parameters:
 Return:
     A dict containing each cluster name and there physical distance.
 """
-def generateCatalogue(fileDir):
+def generateFullCatalogue(fileDir):
     data = fits.fetchFITS(fileDir, 's')
 
     clusterDict = fits.getClusterDict(data)
@@ -245,7 +245,7 @@ def generateCatalogue(fileDir):
 
 
 if __name__ == '__main__':
-    physDict = generateCatalogue("./HeCS_omnibus_dn4000.fits")
+    physDict = generateFullCatalogue("./HeCS_omnibus_dn4000.fits")
     saveObject(physDict, "HeCS-omnibus_PhysicalDistanceData")
     print("Dict Complied and Saved!")
     #physDict = loadObject("HeCS-omnibus_PhysicalDistanceData")
