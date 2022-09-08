@@ -1,2 +1,3 @@
-data/*.*
+data/*.fits
+data/HeCS_omnibus_prop.txt
 .ipynb_checkpoints
